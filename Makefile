@@ -11,7 +11,8 @@ ARGS_LIB_DIR=ext/headers
 INC=-Isrc/ -I$(FMT_LIB_DIR) -I$(INI_LIB_DIR) -I$(ARGS_LIB_DIR) -I$(JSON_LIB_DIR)
 CXXFLAGS=-Wall -O3 -fPIC -std=c++11 $(INC) -DFMT_HEADER_ONLY=1
 
-LIB_NAME=libdramsim3.so
+SHARED_LIB_NAME=libdramsim3.so
+STATIC_LIB_NAME=libdramsim3.a
 EXE_NAME=dramsim3main.out
 
 SRCS = src/bankstate.cc src/channel_state.cc src/command_queue.cc src/common.cc \
@@ -25,13 +26,16 @@ EXE_OBJS = $(addsuffix .o, $(basename $(EXE_SRCS)))
 EXE_OBJS := $(EXE_OBJS) $(OBJECTS)
 
 
-all: $(LIB_NAME) $(EXE_NAME)
+all: $(SHARED_LIB_NAME) $(STATIC_LIB_NAME) $(EXE_NAME)
 
 $(EXE_NAME): $(EXE_OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-$(LIB_NAME): $(OBJECTS)
+$(SHARED_LIB_NAME): $(OBJECTS)
 	$(CXX) -g -shared -Wl,-soname,$@ -o $@ $^
+
+$(STATIC_LIB_NAME): $(OBJECTS)
+	$(AR) rcs $@ $^
 
 %.o : %.cc
 	$(CXX)  $(CXXFLAGS) -o $@ -c $<
@@ -40,4 +44,4 @@ $(LIB_NAME): $(OBJECTS)
 	$(CC) -fPIC -O2 -o $@ -c $<
 
 clean:
-	-rm -f $(EXE_OBJS) $(LIB_NAME) $(EXE_NAME)
+	-rm -f $(EXE_OBJS) $(SHARED_LIB_NAME) $(STATIC_LIB_NAME) $(EXE_NAME)
