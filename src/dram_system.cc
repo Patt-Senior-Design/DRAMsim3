@@ -97,11 +97,6 @@ JedecDRAMSystem::JedecDRAMSystem(Config &config, const std::string &output_dir,
                                  std::function<void(uint64_t)> read_callback,
                                  std::function<void(uint64_t)> write_callback)
     : BaseDRAMSystem(config, output_dir, read_callback, write_callback) {
-    if (config_.IsHMC()) {
-        std::cerr << "Initialized a memory system with an HMC config file!"
-                  << std::endl;
-        AbruptExit(__FILE__, __LINE__);
-    }
 
     ctrls_.reserve(config_.channels);
     for (auto i = 0; i < config_.channels; i++) {

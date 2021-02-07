@@ -34,7 +34,6 @@ add_library(dramsim3 SHARED
     src/configuration.cc
     src/controller.cc
     src/dram_system.cc
-    src/hmc.cc
     src/refresh.cc
     src/simple_stats.cc
     src/timing.cc
@@ -103,7 +102,6 @@ target_include_directories(Catch INTERFACE ext/headers)
 add_executable(dramsim3test EXCLUDE_FROM_ALL
     tests/test_config.cc
     tests/test_dramsys.cc
-    tests/test_hmcsys.cc # IDK somehow this can literally crush your computer
 )
 target_link_libraries(dramsim3test Catch dramsim3)
 target_include_directories(dramsim3test PRIVATE src/)

@@ -20,7 +20,6 @@ enum class DRAMProtocol {
     LPDDR4,
     HBM,
     HBM2,
-    HMC,
     SIZE
 };
 
@@ -111,15 +110,6 @@ class Config {
     double pre_pd_energy_inc;
     double sref_energy_inc;
 
-    // HMC
-    int num_links;
-    int num_dies;
-    int link_width;
-    int link_speed;
-    int num_vaults;
-    int block_size;  // block size in bytes
-    int xbar_queue_depth;
-
     // System
     std::string address_mapping;
     std::string queue_structure;
@@ -155,7 +145,6 @@ class Config {
         return (protocol == DRAMProtocol::HBM ||
                 protocol == DRAMProtocol::HBM2);
     }
-    bool IsHMC() const { return (protocol == DRAMProtocol::HMC); }
     // yzy: add another function
     bool IsDDR4() const { return (protocol == DRAMProtocol::DDR4); }
 

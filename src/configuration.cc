@@ -68,7 +68,7 @@ DRAMProtocol Config::GetDRAMProtocol(std::string protocol_str) {
         {"GDDR5", DRAMProtocol::GDDR5},   {"GDDR5X", DRAMProtocol::GDDR5X},  {"GDDR6", DRAMProtocol::GDDR6},
         {"LPDDR", DRAMProtocol::LPDDR},   {"LPDDR3", DRAMProtocol::LPDDR3},
         {"LPDDR4", DRAMProtocol::LPDDR4}, {"HBM", DRAMProtocol::HBM},
-        {"HBM2", DRAMProtocol::HBM2},     {"HMC", DRAMProtocol::HMC}};
+        {"HBM2", DRAMProtocol::HBM2}};
 
     if (protocol_pairs.find(protocol_str) == protocol_pairs.end()) {
         std::cout << "Unkwown/Unsupported DRAM Protocol: " << protocol_str
@@ -102,23 +102,10 @@ void Config::InitDRAMParams() {
     columns = GetInteger("dram_structure", "columns", 1 << 10);
     device_width = GetInteger("dram_structure", "device_width", 8);
     BL = GetInteger("dram_structure", "BL", 8);
-    num_dies = GetInteger("dram_structure", "num_dies", 1);
     // HBM specific parameters
     enable_hbm_dual_cmd =
         reader.GetBoolean("dram_structure", "hbm_dual_cmd", true);
     enable_hbm_dual_cmd &= IsHBM();  // Make sure only HBM enables this
-    // HMC specific parameters
-    num_links = GetInteger("hmc", "num_links", 4);
-    link_width = GetInteger("hmc", "link_width", 16);
-    link_speed = GetInteger("hmc", "link_speed", 15000);  //MHz
-    block_size = GetInteger("hmc", "block_size", 64);
-    xbar_queue_depth = GetInteger("hmc", "xbar_queue_depth", 16);
-    if (IsHMC()) {
-        // the BL for HMC is determined by max block_size, which is a multiple
-        // of 32B, each "device" transfer 32b per half cycle therefore BL is 8
-        // for 32B block size
-        BL = block_size * 8 / device_width;
-    }
     // set burst cycle according to protocol
     // We use burst_cycle for timing and use BL for capacity calculation
     // BL = 0 simulate perfect BW

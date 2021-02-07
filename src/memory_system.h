@@ -6,7 +6,6 @@
 
 #include "configuration.h"
 #include "dram_system.h"
-#include "hmc.h"
 
 namespace dramsim3 {
 
