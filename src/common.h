@@ -104,18 +104,23 @@ struct Command {
     friend std::ostream& operator<<(std::ostream& os, const Command& cmd);
 };
 
+typedef unsigned tag_t;
+
 struct Transaction {
     Transaction() {}
-    Transaction(uint64_t addr, bool is_write)
-        : addr(addr),
+    Transaction(tag_t tag, uint64_t addr, bool is_write)
+        : tag(tag),
+          addr(addr),
           added_cycle(0),
           complete_cycle(0),
           is_write(is_write) {}
     Transaction(const Transaction& tran)
-        : addr(tran.addr),
+        : tag(tran.tag),
+          addr(tran.addr),
           added_cycle(tran.added_cycle),
           complete_cycle(tran.complete_cycle),
           is_write(tran.is_write) {}
+    tag_t tag;
     uint64_t addr;
     uint64_t added_cycle;
     uint64_t complete_cycle;

@@ -14,12 +14,12 @@ class CPU {
     CPU(const std::string& config_file, const std::string& output_dir)
         : memory_system_(
               config_file, output_dir,
-              std::bind(&CPU::ReadCallBack, this, std::placeholders::_1),
-              std::bind(&CPU::WriteCallBack, this, std::placeholders::_1)),
+              std::bind(&CPU::ReadCallBack, this, std::placeholders::_1, std::placeholders::_2),
+              std::bind(&CPU::WriteCallBack, this, std::placeholders::_1, std::placeholders::_2)),
           clk_(0) {}
     virtual void ClockTick() = 0;
-    void ReadCallBack(uint64_t addr) { return; }
-    void WriteCallBack(uint64_t addr) { return; }
+    void ReadCallBack(tag_t tag, uint64_t addr) { return; }
+    void WriteCallBack(tag_t tag, uint64_t addr) { return; }
     void PrintStats() { memory_system_.PrintStats(); }
 
    protected:

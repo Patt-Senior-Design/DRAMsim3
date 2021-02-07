@@ -28,7 +28,7 @@ std::ostream& operator<<(std::ostream& os, const Command& cmd) {
 
 std::ostream& operator<<(std::ostream& os, const Transaction& trans) {
     const std::string trans_type = trans.is_write ? "WRITE" : "READ";
-    os << fmt::format("{:<30} {:>8}", trans.addr, trans_type);
+    os << fmt::format("{} {:<30} {:>8}", trans.tag, trans.addr, trans_type);
     return os;
 }
 
@@ -36,7 +36,7 @@ std::istream& operator>>(std::istream& is, Transaction& trans) {
     std::unordered_set<std::string> write_types = {"WRITE", "write", "P_MEM_WR",
                                                    "BOFF"};
     std::string mem_op;
-    is >> std::hex >> trans.addr >> mem_op >> std::dec >> trans.added_cycle;
+    is >> trans.tag >> std::hex >> trans.addr >> mem_op >> std::dec >> trans.added_cycle;
     trans.is_write = write_types.count(mem_op) == 1;
     return is;
 }

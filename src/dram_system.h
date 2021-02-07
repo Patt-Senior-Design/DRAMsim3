@@ -19,22 +19,22 @@ namespace dramsim3 {
 class BaseDRAMSystem {
    public:
     BaseDRAMSystem(Config &config, const std::string &output_dir,
-                   std::function<void(uint64_t)> read_callback,
-                   std::function<void(uint64_t)> write_callback);
+                   std::function<void(tag_t,uint64_t)> read_callback,
+                   std::function<void(tag_t,uint64_t)> write_callback);
     virtual ~BaseDRAMSystem() {}
-    void RegisterCallbacks(std::function<void(uint64_t)> read_callback,
-                           std::function<void(uint64_t)> write_callback);
+    void RegisterCallbacks(std::function<void(tag_t,uint64_t)> read_callback,
+                           std::function<void(tag_t,uint64_t)> write_callback);
     void PrintEpochStats();
     void PrintStats();
     void ResetStats();
 
     virtual bool WillAcceptTransaction(uint64_t hex_addr,
                                        bool is_write) const = 0;
-    virtual bool AddTransaction(uint64_t hex_addr, bool is_write) = 0;
+    virtual bool AddTransaction(tag_t tag, uint64_t hex_addr, bool is_write) = 0;
     virtual void ClockTick() = 0;
     int GetChannel(uint64_t hex_addr) const;
 
-    std::function<void(uint64_t req_id)> read_callback_, write_callback_;
+    std::function<void(tag_t tag,uint64_t req_id)> read_callback_, write_callback_;
     static int total_channels_;
 
    protected:
@@ -61,11 +61,11 @@ class BaseDRAMSystem {
 class JedecDRAMSystem : public BaseDRAMSystem {
    public:
     JedecDRAMSystem(Config &config, const std::string &output_dir,
-                    std::function<void(uint64_t)> read_callback,
-                    std::function<void(uint64_t)> write_callback);
+                    std::function<void(tag_t,uint64_t)> read_callback,
+                    std::function<void(tag_t,uint64_t)> write_callback);
     ~JedecDRAMSystem();
     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const override;
-    bool AddTransaction(uint64_t hex_addr, bool is_write) override;
+    bool AddTransaction(tag_t tag, uint64_t hex_addr, bool is_write) override;
     void ClockTick() override;
 };
 
@@ -75,14 +75,14 @@ class JedecDRAMSystem : public BaseDRAMSystem {
 class IdealDRAMSystem : public BaseDRAMSystem {
    public:
     IdealDRAMSystem(Config &config, const std::string &output_dir,
-                    std::function<void(uint64_t)> read_callback,
-                    std::function<void(uint64_t)> write_callback);
+                    std::function<void(tag_t,uint64_t)> read_callback,
+                    std::function<void(tag_t,uint64_t)> write_callback);
     ~IdealDRAMSystem();
     bool WillAcceptTransaction(uint64_t hex_addr,
                                bool is_write) const override {
         return true;
     };
-    bool AddTransaction(uint64_t hex_addr, bool is_write) override;
+    bool AddTransaction(tag_t tag, uint64_t hex_addr, bool is_write) override;
     void ClockTick() override;
 
    private:

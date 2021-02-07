@@ -9,8 +9,8 @@ namespace dramsim3 {
 int BaseDRAMSystem::total_channels_ = 0;
 
 BaseDRAMSystem::BaseDRAMSystem(Config &config, const std::string &output_dir,
-                               std::function<void(uint64_t)> read_callback,
-                               std::function<void(uint64_t)> write_callback)
+                               std::function<void(tag_t,uint64_t)> read_callback,
+                               std::function<void(tag_t,uint64_t)> write_callback)
     : read_callback_(read_callback),
       write_callback_(write_callback),
       last_req_clk_(0),
@@ -86,16 +86,16 @@ void BaseDRAMSystem::ResetStats() {
 }
 
 void BaseDRAMSystem::RegisterCallbacks(
-    std::function<void(uint64_t)> read_callback,
-    std::function<void(uint64_t)> write_callback) {
+    std::function<void(tag_t,uint64_t)> read_callback,
+    std::function<void(tag_t,uint64_t)> write_callback) {
     // TODO this should be propagated to controllers
     read_callback_ = read_callback;
     write_callback_ = write_callback;
 }
 
 JedecDRAMSystem::JedecDRAMSystem(Config &config, const std::string &output_dir,
-                                 std::function<void(uint64_t)> read_callback,
-                                 std::function<void(uint64_t)> write_callback)
+                                 std::function<void(tag_t,uint64_t)> read_callback,
+                                 std::function<void(tag_t,uint64_t)> write_callback)
     : BaseDRAMSystem(config, output_dir, read_callback, write_callback) {
 
     ctrls_.reserve(config_.channels);
@@ -120,7 +120,7 @@ bool JedecDRAMSystem::WillAcceptTransaction(uint64_t hex_addr,
     return ctrls_[channel]->WillAcceptTransaction(hex_addr, is_write);
 }
 
-bool JedecDRAMSystem::AddTransaction(uint64_t hex_addr, bool is_write) {
+bool JedecDRAMSystem::AddTransaction(tag_t tag, uint64_t hex_addr, bool is_write) {
 // Record trace - Record address trace for debugging or other purposes
 #ifdef ADDR_TRACE
     address_trace_ << std::hex << hex_addr << std::dec << " "
@@ -132,7 +132,7 @@ bool JedecDRAMSystem::AddTransaction(uint64_t hex_addr, bool is_write) {
 
     assert(ok);
     if (ok) {
-        Transaction trans = Transaction(hex_addr, is_write);
+        Transaction trans = Transaction(tag, hex_addr, is_write);
         ctrls_[channel]->AddTransaction(trans);
     }
     last_req_clk_ = clk_;
@@ -143,11 +143,11 @@ void JedecDRAMSystem::ClockTick() {
     for (size_t i = 0; i < ctrls_.size(); i++) {
         // look ahead and return earlier
         while (true) {
-            auto pair = ctrls_[i]->ReturnDoneTrans(clk_);
-            if (pair.second == 1) {
-                write_callback_(pair.first);
-            } else if (pair.second == 0) {
-                read_callback_(pair.first);
+            auto tuple = ctrls_[i]->ReturnDoneTrans(clk_);
+            if (std::get<2>(tuple) == 1) {
+                write_callback_(std::get<0>(tuple), std::get<1>(tuple));
+            } else if (std::get<2>(tuple) == 0) {
+                read_callback_(std::get<0>(tuple), std::get<1>(tuple));
             } else {
                 break;
             }
@@ -165,15 +165,15 @@ void JedecDRAMSystem::ClockTick() {
 }
 
 IdealDRAMSystem::IdealDRAMSystem(Config &config, const std::string &output_dir,
-                                 std::function<void(uint64_t)> read_callback,
-                                 std::function<void(uint64_t)> write_callback)
+                                 std::function<void(tag_t,uint64_t)> read_callback,
+                                 std::function<void(tag_t,uint64_t)> write_callback)
     : BaseDRAMSystem(config, output_dir, read_callback, write_callback),
       latency_(config_.ideal_memory_latency) {}
 
 IdealDRAMSystem::~IdealDRAMSystem() {}
 
-bool IdealDRAMSystem::AddTransaction(uint64_t hex_addr, bool is_write) {
-    auto trans = Transaction(hex_addr, is_write);
+bool IdealDRAMSystem::AddTransaction(tag_t tag, uint64_t hex_addr, bool is_write) {
+    auto trans = Transaction(tag, hex_addr, is_write);
     trans.added_cycle = clk_;
     infinite_buffer_q_.push_back(trans);
     return true;
@@ -184,9 +184,9 @@ void IdealDRAMSystem::ClockTick() {
          trans_it != infinite_buffer_q_.end();) {
         if (clk_ - trans_it->added_cycle >= static_cast<uint64_t>(latency_)) {
             if (trans_it->is_write) {
-                write_callback_(trans_it->addr);
+                write_callback_(trans_it->tag, trans_it->addr);
             } else {
-                read_callback_(trans_it->addr);
+                read_callback_(trans_it->tag, trans_it->addr);
             }
             trans_it = infinite_buffer_q_.erase(trans_it++);
         }
